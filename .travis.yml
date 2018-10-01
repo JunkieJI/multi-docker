@@ -1,0 +1,19 @@
+sudo: required
+service: 
+  - docker
+before_install:
+  - docker build -t junkieji/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run junkieji/react-test npm test -- --coverage
+after_success:
+  - docker build -t junkieji/multi-client ./client
+  - docker build -t junkieji/multi-nginx ./nginx
+  - docker build -t junkieji/multi-server ./server
+  - docker build -t junkieji/multi-worker ./worker
+  # Login to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take images and push to docker hub
+  - docker push junkieji/multi-client
+  - docker push junkieji/multi-nginx
+  - docker push junkieji/multi-server
+  - docker push junkieji/multi-worker
